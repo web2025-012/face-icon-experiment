@@ -168,7 +168,7 @@
             let text = '';
             if (task.type === 'task1') text = `画面に表示される${emotion}のアイコンを見てください`;
             if (task.type === 'task2') text = `画面上の目と口のパーツを移動・回転させて${emotion}を作成してください`;
-            if (task.type === 'task3') text = `点や線の表現によって${emotion}を描いてください`;
+            if (task.type === 'task3') text = `点や線の表現によって目と口のパーツからなる${emotion}を描いてください`;
             document.getElementById('instruction-text').textContent = text;
             showScreen('instruction-screen');
             startTimer('instruction-timer', 15, startTask);
