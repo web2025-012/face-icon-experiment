@@ -151,7 +151,23 @@
             startTimer('rest-close-timer', 15, startRestOpen);
         }
 
+       function playChime() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 1.5);
+        }
+
         function startRestOpen() {
+            playChime();
             showScreen('rest-open-screen');
             startTimer('rest-open-timer', 15, () => {
                 if (currentTrial === 0) {
@@ -166,8 +182,8 @@
             const task = taskOrder[currentTaskIndex];
             const emotion = task.emotion === 'smile' ? '笑顔' : '怒り顔';
             let text = '';
-            if (task.type === 'task1') text = `画面に表示される${emotion}のアイコンを見てください`;
-            if (task.type === 'task2') text = `画面上の目と口のパーツを移動・回転させて${emotion}を作成してください`;
+            if (task.type === 'task1') text = `画面に表示される顔アイコンを見てください`;
+            if (task.type === 'task2') text = `画面上の目と口のパーツを移動・回転させて配置し、${emotion}を作成してください`;
             if (task.type === 'task3') text = `点や線の表現によって目と口のパーツからなる${emotion}を描いてください`;
             document.getElementById('instruction-text').textContent = text;
             showScreen('instruction-screen');
