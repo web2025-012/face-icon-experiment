@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顔アイコン</title>
+    <style>
+        body {
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            gap: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 笑顔 -->
+    <svg width="200" height="200" viewBox="0 0 200 200">
+        <!-- 左目 -->
+        <path d="M 60 80 Q 75 65 90 80" stroke="black" stroke-width="4" fill="none"/>
+        <!-- 右目 -->
+        <path d="M 110 80 Q 125 65 140 80" stroke="black" stroke-width="4" fill="none"/>
+        <!-- 口 -->
+        <path d="M 60 120 Q 100 155 140 120" stroke="black" stroke-width="4" fill="none"/>
+    </svg>
+    
+    <!-- 怒り顔 -->
+    <svg width="200" height="200" viewBox="0 0 200 200">
+        <!-- 左目（右下がり直線） -->
+        <line x1="60" y1="70" x2="90" y2="82" stroke="black" stroke-width="4"/>
+        <!-- 右目（左下がり直線） -->
+        <line x1="110" y1="82" x2="140" y2="70" stroke="black" stroke-width="4"/>
+        <!-- 口 -->
+        <path d="M 60 140 Q 100 115 140 140" stroke="black" stroke-width="4" fill="none"/>
+    </svg>
+
+</body>
+</html>

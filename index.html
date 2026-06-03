@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>顔アイコン実験</title>
+    <style>
+        body {
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-size: 24px;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        .active {
+            display: flex;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        #canvas-area {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+        .part {
+            position: absolute;
+            cursor: grab;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- スタート画面 -->
+    <div class="screen active" id="start-screen">
+        <p>実験を開始します</p>
+        <button onclick="startExperiment()">開始</button>
+    </div>
+
+    <!-- 安静閉眼画面 -->
+    <div class="screen" id="rest-close-screen">
+        <p>目を閉じてリラックスしてください</p>
+        <p id="rest-close-timer">15</p>
+    </div>
+
+    <!-- 安静開眼画面 -->
+    <div class="screen" id="rest-open-screen">
+        <p>目を開けてリラックスしてください</p>
+        <p id="rest-open-timer">15</p>
+    </div>
+
+    <!-- 説明画面 -->
+    <div class="screen" id="instruction-screen">
+        <p id="instruction-text"></p>
+        <p id="instruction-timer">15</p>
+    </div>
+
+    <!-- Task1 静止画 -->
+    <div class="screen" id="task1-screen">
+        <p id="task1-timer">15</p>
+        <svg id="task1-icon" width="200" height="200" viewBox="0 0 200 200"></svg>
+    </div>
+
+    <!-- Task2 配置 -->
+    <div class="screen" id="task2-screen">
+        <p id="task2-timer">15</p>
+        <div id="canvas-area"></div>
+    </div>
+
+    <!-- Task3 描画 -->
+    <div class="screen" id="task3-screen">
+        <p id="task3-timer">15</p>
+        <canvas id="drawCanvas" width="500" height="500"></canvas>
+        <button onclick="clearCanvas()">クリア</button>
+    </div>
+
+    <!-- 終了画面 -->
+    <div class="screen" id="end-screen">
+        <p>実験が終了しました。ありがとうございました。</p>
+    </div>
+
+    <script>
+        const tasks = [
+            { type: 'task1', emotion: 'smile' },
+            { type: 'task1', emotion: 'angry' },
+            { type: 'task2', emotion: 'smile' },
+            { type: 'task2', emotion: 'angry' },
+            { type: 'task3', emotion: 'smile' },
+            { type: 'task3', emotion: 'angry' },
+        ];
+
+        let taskOrder = [];
+        let currentTaskIndex = 0;
+        let currentTrial = 0;
+        const totalTrials = 5;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+       function startExperiment() {
+            taskOrder = shuffle([...tasks]);
+            currentTaskIndex = 0;
+            currentTrial = 0;
+            console.log(taskOrder.map(t => t.type + '_' + t.emotion));
+            startRestClose();
+        }
+
+        function startTimer(elementId, seconds, callback) {
+            let remaining = seconds;
+            document.getElementById(elementId).textContent = remaining;
+            const interval = setInterval(() => {
+                remaining--;
+                document.getElementById(elementId).textContent = remaining;
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    callback();
+                }
+            }, 1000);
+        }
+
+        function startRestClose() {
+            showScreen('rest-close-screen');
+            startTimer('rest-close-timer', 15, startRestOpen);
+        }
+
+        function startRestOpen() {
+            showScreen('rest-open-screen');
+            startTimer('rest-open-timer', 15, () => {
+                if (currentTrial === 0) {
+                    showInstruction();
+                } else {
+                    startTask();
+                }
+            });
+        }
+
+        function showInstruction() {
+            const task = taskOrder[currentTaskIndex];
+            const emotion = task.emotion === 'smile' ? '笑顔' : '怒り顔';
+            let text = '';
+            if (task.type === 'task1') text = `画面に表示される${emotion}のアイコンを見てください`;
+            if (task.type === 'task2') text = `画面上の目と口のパーツを移動・回転させて${emotion}を作成してください`;
+            if (task.type === 'task3') text = `点や線の表現によって${emotion}を描いてください`;
+            document.getElementById('instruction-text').textContent = text;
+            showScreen('instruction-screen');
+            startTimer('instruction-timer', 15, startTask);
+        }
+
+        function startTask() {
+            const task = taskOrder[currentTaskIndex];
+            if (task.type === 'task1') startTask1();
+            if (task.type === 'task2') startTask2();
+            if (task.type === 'task3') startTask3();
+        }
+
+        function startTask1() {
+            const task = taskOrder[currentTaskIndex];
+            const svg = document.getElementById('task1-icon');
+            if (task.emotion === 'smile') {
+                svg.innerHTML = `
+                    <path d="M 60 80 Q 75 65 90 80" stroke="black" stroke-width="4" fill="none"/>
+                    <path d="M 110 80 Q 125 65 140 80" stroke="black" stroke-width="4" fill="none"/>
+                    <path d="M 60 120 Q 100 155 140 120" stroke="black" stroke-width="4" fill="none"/>
+                `;
+            } else {
+                svg.innerHTML = `
+                    <line x1="60" y1="70" x2="90" y2="82" stroke="black" stroke-width="4"/>
+                    <line x1="110" y1="82" x2="140" y2="70" stroke="black" stroke-width="4"/>
+                    <path d="M 60 140 Q 100 115 140 140" stroke="black" stroke-width="4" fill="none"/>
+                `;
+            }
+            showScreen('task1-screen');
+            startTimer('task1-timer', 30, nextTrial);
+        }
+
+        function startTask2() {
+            const task = taskOrder[currentTaskIndex];
+            const area = document.getElementById('canvas-area');
+            area.innerHTML = '';
+            let parts = [];
+            if (task.emotion === 'smile') {
+                parts = [
+                    `<svg class="part" width="80" height="40"><path d="M 5 35 Q 40 5 75 35" stroke="black" stroke-width="4" fill="none"/></svg>`,
+                    `<svg class="part" width="80" height="40"><path d="M 5 35 Q 40 5 75 35" stroke="black" stroke-width="4" fill="none"/></svg>`,
+                    `<svg class="part" width="160" height="60"><path d="M 5 5 Q 80 55 155 5" stroke="black" stroke-width="4" fill="none"/></svg>`,
+                ];
+            } else {
+                parts = [
+                    `<svg class="part" width="80" height="40"><line x1="5" y1="10" x2="75" y2="28" stroke="black" stroke-width="4"/></svg>`,
+                    `<svg class="part" width="80" height="40"><line x1="5" y1="28" x2="75" y2="10" stroke="black" stroke-width="4"/></svg>`,
+                    `<svg class="part" width="160" height="60"><path d="M 5 55 Q 80 15 155 55" stroke="black" stroke-width="4" fill="none"/></svg>`,
+                ];
+            }
+            parts.forEach(p => {
+                area.insertAdjacentHTML('beforeend', p);
+            });
+             showScreen('task2-screen');
+            setTimeout(() => {
+                setupDrag();
+                startTimer('task2-timer', 30, nextTrial);
+            }, 50);
+        }
+
+        function setupDrag() {
+            document.querySelectorAll('.part').forEach(el => {
+                let isDragging = false;
+                let offsetX, offsetY;
+                let moved = false;
+                const area = document.getElementById('canvas-area');
+                el.style.left = Math.floor(Math.random() * (area.offsetWidth - 80)) + 'px';
+                el.style.top = Math.floor(Math.random() * (area.offsetHeight - 60)) + 'px';
+                let rotation = Math.floor(Math.random() * 8) * 45;
+                el.style.transform = `rotate(${rotation}deg)`;
+
+                el.addEventListener('mousedown', e => {
+                    isDragging = true;
+                    moved = false;
+                    offsetX = e.clientX - el.getBoundingClientRect().left;
+                    offsetY = e.clientY - el.getBoundingClientRect().top;
+                    el.style.cursor = 'grabbing';
+                });
+                document.addEventListener('mousemove', e => {
+                    if (!isDragging) return;
+                    moved = true;
+                    const areaRect = document.getElementById('canvas-area').getBoundingClientRect();
+                    el.style.left = (e.clientX - areaRect.left - offsetX) + 'px';
+                    el.style.top = (e.clientY - areaRect.top - offsetY) + 'px';
+                });
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    el.style.cursor = 'grab';
+                });
+                el.addEventListener('click', () => {
+                    if (moved) return;
+                    rotation = (rotation + 45) % 360;
+                    el.style.transform = `rotate(${rotation}deg)`;
+                });
+            });
+        }
+
+        function startTask3() {
+            const canvas = document.getElementById('drawCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            let isDrawing = false;
+
+            canvas.onmousedown = e => {
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            };
+            canvas.onmousemove = e => {
+                if (!isDrawing) return;
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            };
+            canvas.onmouseup = () => isDrawing = false;
+            canvas.onmouseleave = () => isDrawing = false;
+
+            showScreen('task3-screen');
+            startTimer('task3-timer', 30, nextTrial);
+        }
+        
+        function clearCanvas() {
+            const canvas = document.getElementById('drawCanvas');
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function nextTrial() {
+            currentTrial++;
+            if (currentTrial >= totalTrials) {
+                currentTrial = 0;
+                currentTaskIndex++;
+                if (currentTaskIndex >= taskOrder.length) {
+                    showScreen('end-screen');
+                    return;
+                }
+            }
+            startRestClose();
+        }
+    </script>
+</body>
+</html>

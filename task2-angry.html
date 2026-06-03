@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Task2 怒り顔配置</title>
+    <style>
+        body {
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #canvas-area {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+        .part {
+            position: absolute;
+            cursor: grab;
+        }
+    </style>
+</head>
+<body>
+    <p>目と口のパーツを移動・回転させて怒り顔を作成してください</p>
+    <div id="canvas-area">
+        <!-- 左目（直線） -->
+        <svg class="part" width="80" height="40">
+            <line x1="5" y1="10" x2="75" y2="28" stroke="black" stroke-width="4"/>
+        </svg>
+        <!-- 右目（直線） -->
+        <svg class="part" width="80" height="40">
+            <line x1="5" y1="28" x2="75" y2="10" stroke="black" stroke-width="4"/>
+        </svg>
+        <!-- 口 -->
+        <svg class="part" width="160" height="60">
+            <path d="M 5 55 Q 80 15 155 55" stroke="black" stroke-width="4" fill="none"/>
+        </svg>
+    </div>
+
+    <script>
+        document.querySelectorAll('.part').forEach(el => {
+            let isDragging = false;
+            let offsetX, offsetY;
+            let moved = false;
+
+            const area = document.getElementById('canvas-area');
+            const maxX = area.offsetWidth - 80;
+            const maxY = area.offsetHeight - 60;
+            el.style.left = Math.floor(Math.random() * maxX) + 'px';
+            el.style.top = Math.floor(Math.random() * maxY) + 'px';
+            let rotation = Math.floor(Math.random() * 8) * 45;
+            el.style.transform = `rotate(${rotation}deg)`;
+
+            el.addEventListener('mousedown', e => {
+                isDragging = true;
+                moved = false;
+                offsetX = e.clientX - el.getBoundingClientRect().left;
+                offsetY = e.clientY - el.getBoundingClientRect().top;
+                el.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                moved = true;
+                const areaRect = document.getElementById('canvas-area').getBoundingClientRect();
+                let x = e.clientX - areaRect.left - offsetX;
+                let y = e.clientY - areaRect.top - offsetY;
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                el.style.cursor = 'grab';
+            });
+
+            el.addEventListener('click', () => {
+                if (moved) return;
+                rotation = (rotation + 45) % 360;
+                el.style.transform = `rotate(${rotation}deg)`;
+            });
+        });
+    </script>
+</body>
+</html>
